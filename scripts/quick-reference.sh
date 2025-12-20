@@ -26,7 +26,7 @@ AUTO TEST (from host, in another terminal)
 
 CONNECT TO VM
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # SSH
+  # SSH (uses keys if configured, else password: ubuntu)
   ssh -p 2222 ubuntu@localhost
 
   # Copy files TO VM

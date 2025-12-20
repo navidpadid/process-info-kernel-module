@@ -10,13 +10,14 @@ SSH_PORT=2222
 SSH_USER=ubuntu
 SSH_HOST=localhost
 SSH_OPTS="-p $SSH_PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+SCP_OPTS="-P $SSH_PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
 
 echo "==================================================="
 echo "Testing Kernel Module in QEMU VM"
 echo "==================================================="
 
 # Check if VM is running
-if ! nc -z $SSH_HOST $SSH_PORT 2>/dev/null; then
+if ! ssh $SSH_OPTS -o ConnectTimeout=5 -o BatchMode=yes ${SSH_USER}@${SSH_HOST} exit 2>/dev/null; then
     echo "ERROR: QEMU VM is not running or SSH is not accessible"
     echo "Start the VM first with: ./scripts/qemu-run.sh"
     exit 1
@@ -29,7 +30,7 @@ make all
 
 echo ""
 echo "2. Copying files to QEMU VM..."
-scp $SSH_OPTS -r build src/Kbuild Makefile ${SSH_USER}@${SSH_HOST}:~/kernel_module/
+scp $SCP_OPTS -r build src/Kbuild Makefile ${SSH_USER}@${SSH_HOST}:~/kernel_module/
 
 echo ""
 echo "3. Installing and testing module in VM..."
