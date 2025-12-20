@@ -47,4 +47,7 @@ core.*
 # Backup files
 *.bak
 *.backup
+
+# QEMU testing environment
+scripts/qemu-env/
 *~

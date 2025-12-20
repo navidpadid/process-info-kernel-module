@@ -39,6 +39,11 @@ kernel_module/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml          # GitHub Actions CI/CD pipeline
+├── scripts/                # Testing and utility scripts
+│   ├── qemu-setup.sh       # Setup QEMU testing environment
+│   ├── qemu-run.sh         # Run QEMU VM
+│   ├── qemu-test.sh        # Automated module testing in QEMU
+│   └── README.md           # QEMU testing documentation
 ├── src/
 │   ├── elf_det.c           # Kernel module source code
 │   ├── proc_elf_ctrl.c     # User-space controller program
@@ -146,6 +151,46 @@ PID     NAME    CPU     START_CODE      END_CODE        START_DATA      END_DATA
 sudo make uninstall
 ```
 
+## Safe Testing with QEMU
+
+For maximum safety, test the kernel module in an isolated QEMU virtual machine that won't affect your host system.
+
+### Quick Start
+
+```bash
+# One-time setup
+./scripts/qemu-setup.sh
+
+# Start VM
+./scripts/qemu-run.sh
+
+# In another terminal, run automated tests
+./scripts/qemu-test.sh
+```
+
+### Requirements
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install qemu-system-x86 qemu-utils cloud-image-utils
+
+# macOS
+brew install qemu
+
+# Fedora
+sudo dnf install qemu-system-x86 qemu-img cloud-utils
+```
+
+### What QEMU Testing Does
+
+- Downloads Ubuntu 24.04 VM image
+- Configures VM with kernel headers
+- Provides SSH access on port 2222
+- Completely isolates module testing from your host
+- Automated build, install, test, and uninstall cycle
+
+See [scripts/README.md](scripts/README.md) for detailed QEMU testing documentation.
+
 ## Makefile Targets
 
 | Target | Description |
@@ -196,6 +241,11 @@ The module has been tested on:
 - Kernel 5.6+ required (proc_ops API)
 - Kernel 6.8+ recommended (VMA iterator API)
 - The code has been updated to use modern kernel APIs including VMA iterators and proc_ops
+
+**Safe Testing Options:**
+1. **Dev Container** (current setup) - Isolated from host kernel
+2. **QEMU VM** (recommended for extra safety) - See [scripts/README.md](scripts/README.md)
+3. **Cloud VM** - Disposable testing environment
 
 ## Related Documentation
 
