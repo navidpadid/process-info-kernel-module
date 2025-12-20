@@ -12,6 +12,7 @@
 #include <linux/uaccess.h>    //for user to kernel and vice versa access
 #include <linux/string.h> //for string libs
 #include <linux/sched/signal.h> //for task iteration
+#include <linux/sched/cputime.h> //for task_cputime
 
 MODULE_LICENSE("Dual BSD/GPL"); //module license
 
@@ -33,12 +34,11 @@ static ssize_t procfile_write(struct file*, const char*, size_t, loff_t*);
 //this function is the base function to gather information from kernel
 static int tops_show(struct seq_file *m, void *v) {
 	struct task_struct *task;
-	struct vm_area_struct *vma;
 	unsigned long bss_start = 0, bss_end = 0;
 	unsigned long elf_header = 0;
-	u64 delta, total;
-	u64 usage; //for knowing cpu usage
-	int vma_count = 0;
+	u64 delta_ns, total_ns;
+	u64 usage_permyriad; // CPU usage in hundredths of a percent (X.XX%)
+
 	
         sscanf(buff, "%d", &user_pid);  //type cast pid from user(buff) to integer
         task = pid_task(find_vpid(user_pid), PIDTYPE_PID);  //get the task from pid
@@ -48,9 +48,13 @@ static int tops_show(struct seq_file *m, void *v) {
 		return 0;
 	}
 
-        total = ((task->utime + task->stime) / HZ) * 1000000000;
-        delta = ktime_get_ns() - task->start_time;
-        usage = (1000 * total) / delta; //cpu usage
+	/* CPU usage: total CPU time of task since start divided by elapsed wall time */
+	total_ns = (u64)task->utime + (u64)task->stime;
+	delta_ns = ktime_get_ns() - task->start_time;
+	if (delta_ns > 0)
+		usage_permyriad = (10000ULL * total_ns) / delta_ns; /* percent with two decimals */
+	else
+		usage_permyriad = 0;
         
 	// Access VMA using VMA iterator for kernel 6.8+
 	if (mmap_read_lock_killable(task->mm)) {
@@ -58,33 +62,26 @@ static int tops_show(struct seq_file *m, void *v) {
 		return 0;
 	}
 
-	// Try to get ELF header location
-	if (task->mm->saved_auxv[19] != 0) {
-		elf_header = task->mm->saved_auxv[19];
-	}
-
-	// Iterate through VMAs to find BSS section (3rd VMA typically)
-	VMA_ITERATOR(vmi, task->mm, 0);
-	for_each_vma(vmi, vma) {
-		vma_count++;
-		// The third VMA often contains BSS section
-		if (vma_count == 3) {
-			bss_start = vma->vm_start;
-			bss_end = vma->vm_end;
-			break;
-		}
+	/* Use mm fields directly for ELF and BSS */
+	elf_header = task->mm->start_code;
+	bss_start = task->mm->end_data;
+	bss_end = task->mm->start_brk;
+	if (bss_end < bss_start) {
+		/* If values look wrong due to unusual layout, clear them */
+		bss_start = 0;
+		bss_end = 0;
 	}
 
 	mmap_read_unlock(task->mm);
 
-        //now print the information we want to the det file
-        seq_printf(m, "PID \tNAME \tCPU \tSTART_CODE \tEND_CODE \tSTART_DATA\tEND_DATA \tBSS_START\tBSS_END\tELF\n");
-        seq_printf(m, "%.5d\t%.7s\t%llu.%llu\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\n", 
-		task->pid, task->comm, usage / 10, usage % 10, 
-		task->mm->start_code, task->mm->end_code,
-		task->mm->start_data, task->mm->end_data,
-		bss_start, bss_end,
-		elf_header);
+		//now print the information we want to the det file
+		seq_printf(m, "PID \tNAME \tCPU(%%) \tSTART_CODE \tEND_CODE \tSTART_DATA\tEND_DATA \tBSS_START\tBSS_END\tELF\n");
+		seq_printf(m, "%.5d\t%.7s\t%llu.%02llu\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\t0x%.13lx\n",
+			task->pid, task->comm, (usage_permyriad / 100), (usage_permyriad % 100),
+			task->mm->start_code, task->mm->end_code,
+			task->mm->start_data, task->mm->end_data,
+			bss_start, bss_end,
+			elf_header);
 
 	return 0;
 }
