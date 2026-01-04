@@ -1,12 +1,24 @@
 #!/bin/bash
-# Quick reference for common QEMU testing commands
+# Quick reference for Linux Process Information Kernel Module testing
 
 cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════╗
-║            QEMU Testing - Quick Reference                    ║
+║    Linux Process Info Kernel Module - Quick Reference       ║
 ╚══════════════════════════════════════════════════════════════╝
 
-SETUP (Run once)
+LOCAL TESTING (No Kernel Required)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Build and run unit tests
+  make unit
+
+  # Build everything
+  make all
+
+  # Clean artifacts
+  make clean
+
+
+QEMU SETUP (Run Once)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ./scripts/qemu-setup.sh
 
@@ -19,8 +31,9 @@ START VM
   Exit:  Ctrl+A then X
 
 
-AUTO TEST (from host, in another terminal)
+AUTO TEST (From Host, in Another Terminal)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Full automated test suite
   ./scripts/qemu-test.sh
 
 
@@ -36,29 +49,47 @@ CONNECT TO VM
   scp -P 2222 ubuntu@localhost:~/file.txt ./
 
 
-MANUAL TESTING (inside VM)
+MANUAL TESTING (Inside VM)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # Build
+  # Build everything
   make clean && make all
 
-  # Install module
-  sudo insmod build/elf_det.ko
+  # Run unit tests (no kernel required)
+  make unit
 
-  # Check loaded
+  # Install kernel module
+  sudo make install
+  # OR: sudo insmod build/elf_det.ko
+
+  # Verify module loaded
   lsmod | grep elf_det
 
   # Test with user program
   ./build/proc_elf_ctrl
 
-  # Or test manually
+  # Or test manually with proc interface
   echo "1" | sudo tee /proc/elf_det/pid
   sudo cat /proc/elf_det/det
 
-  # Check logs
+  # Check kernel logs
   sudo dmesg | tail -20
 
-  # Unload
-  sudo rmmod elf_det
+  # Unload module
+  sudo make uninstall
+  # OR: sudo rmmod elf_det
+
+
+BUILD TARGETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  make all       - Build module and user program
+  make module    - Build kernel module only
+  make user      - Build user program only
+  make unit      - Build and run unit tests
+  make install   - Install kernel module
+  make uninstall - Remove kernel module
+  make test      - Install module and run user program
+  make clean     - Remove build artifacts
+  make help      - Show all targets
 
 
 CLEANUP
@@ -70,16 +101,46 @@ CLEANUP
   ./scripts/qemu-setup.sh
 
 
+PROJECT STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  src/elf_det.c               - Kernel module source
+  src/proc_elf_ctrl.c         - User program source
+  src/elf_det_tests.c         - Unit tests for elf_det
+  src/proc_elf_ctrl_tests.c   - Unit tests for proc_elf_ctrl
+  src/lib/                    - Helper headers
+  build/                      - Compiled artifacts
+
+
 TIPS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  - First boot takes 1-2 minutes for cloud-init
-  - VM is completely isolated - crash won't affect host
-  - KVM acceleration used if available
+  - Always run 'make unit' first (no kernel required)
+  - Use QEMU for safe kernel module testing
+  - First VM boot takes 1-2 minutes for cloud-init
+  - VM is completely isolated - crashes won't affect host
+  - KVM acceleration used automatically if available
   - Change default password after first login
+  - Always unload module before rebuilding
+
+
+TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Module won't load
+  dmesg | tail -20
+  ls /lib/modules/$(uname -r)/build
+
+  # Can't connect to VM
+  ps aux | grep qemu
+  ssh -p 2222 ubuntu@localhost
+
+  # Reset QEMU environment
+  rm -rf scripts/qemu-env/
+  ./scripts/qemu-setup.sh
 
 
 MORE INFO
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  See: scripts/README.md
+  README.md          - Complete project documentation
+  scripts/README.md  - QEMU testing details
+  LICENSE            - Dual BSD/GPL license
 
 EOF

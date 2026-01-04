@@ -42,11 +42,11 @@ user:
 unit:
 	@echo "Building function-level unit tests..."
 	@mkdir -p $(BUILD_DIR)
-	gcc -Wall -I$(SRC_DIR) -o $(BUILD_DIR)/elf_helpers_test tests/elf_helpers_test.c
-	gcc -Wall -I$(SRC_DIR) -o $(BUILD_DIR)/user_helpers_test tests/user_helpers_test.c
+	gcc -Wall -I$(SRC_DIR) -o $(BUILD_DIR)/elf_det_tests $(SRC_DIR)/elf_det_tests.c
+	gcc -Wall -I$(SRC_DIR) -o $(BUILD_DIR)/proc_elf_ctrl_tests $(SRC_DIR)/proc_elf_ctrl_tests.c
 	@echo "Running unit tests..."
-	@$(BUILD_DIR)/elf_helpers_test
-	@$(BUILD_DIR)/user_helpers_test
+	@$(BUILD_DIR)/elf_det_tests
+	@$(BUILD_DIR)/proc_elf_ctrl_tests
 	@echo "All function-level unit tests passed!"
 
 # Install kernel module (requires root)

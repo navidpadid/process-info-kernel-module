@@ -47,6 +47,8 @@ kernel_module/
 ├── src/
 │   ├── elf_det.c           # Kernel module source code
 │   ├── proc_elf_ctrl.c     # User-space controller program
+│   ├── elf_det_tests.c     # Unit tests for elf_det functions
+│   ├── proc_elf_ctrl_tests.c  # Unit tests for proc_elf_ctrl helpers
 │   └── Kbuild              # Kernel build configuration
 ├── Makefile                # Build system
 ├── .gitignore              # Git ignore rules
@@ -55,7 +57,9 @@ kernel_module/
 Generated after build:
 └── build/                  # Build artifacts (created by make)
     ├── elf_det.ko          # Compiled kernel module
-    └── proc_elf_ctrl       # Compiled user program
+    ├── proc_elf_ctrl       # Compiled user program
+    ├── elf_det_tests       # Compiled unit tests for elf_det
+    └── proc_elf_ctrl_tests # Compiled unit tests for proc_elf_ctrl
 ```
 
 ## Prerequisites
@@ -168,18 +172,6 @@ For maximum safety, test the kernel module in an isolated QEMU virtual machine t
 ./scripts/qemu-test.sh
 ```
 
-### Requirements
-
-```bash
-# Ubuntu/Debian
-sudo apt-get install qemu-system-x86 qemu-utils cloud-image-utils
-
-# macOS
-brew install qemu
-
-# Fedora
-sudo dnf install qemu-system-x86 qemu-img cloud-utils
-```
 
 ### What QEMU Testing Does
 
@@ -266,21 +258,14 @@ make unit
 ```
 
 This builds and runs:
-- `tests/elf_helpers_test.c` – verifies `compute_usage_permyriad()` and `compute_bss_range()`
-- `tests/user_helpers_test.c` – verifies `build_proc_path()` with and without `ELF_DET_PROC_DIR`
+- `src/elf_det_tests.c` – verifies `compute_usage_permyriad()` and `compute_bss_range()`
+- `src/proc_elf_ctrl_tests.c` – verifies `build_proc_path()` with and without `ELF_DET_PROC_DIR`
 
 Artifacts are created under `build/`.
-1. **Dev Container** (current setup) - Isolated from host kernel
-2. **QEMU VM** (recommended for extra safety) - See [scripts/README.md](scripts/README.md)
+1. **Dev Container** (current setup) - Isolated from host 
+2. **QEMU VM** (recommended for extra safety from kernel) - See [scripts/README.md](scripts/README.md)
 3. **Cloud VM** - Disposable testing environment
 
-## Related Documentation
-
-For detailed implementation guides, refer to the blog posts:
-
-- **Part 2.1**: [Implementation of Simple "hello world" Module and Run](http://navidmalek.blog.ir/1396/07/07/Linux-2-1-Implementation-of-Simple-%E2%80%9Chello-world%E2%80%9D-Module-and-Run)
-- **Part 2.2**: [Finding specified information and necessary functions](http://navidmalek.blog.ir/1396/07/07/Linux-2-2-Part-2-2-Finding-specified-information-and-necessary-functions-to-implement-desired-module)
-- **Part 2.3**: [Implementation of kernel module and user program](http://navidmalek.blog.ir/1396/07/07/Linux-2-3-Part-2-3-Implementation-of-desired-kernel-module-and-user-program)
 
 ## Important Notes
 
@@ -329,14 +314,11 @@ This project is licensed under **Dual BSD/GPL** license.
 
 ## Author
 
-**Navid Malek**
-
-- Blog: [navidmalek.blog.ir](http://navidmalek.blog.ir)
-- Project: [process-info-kernel-module](https://github.com/navidpadid/process-info-kernel-module)
+**Navid Malekghaini**
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
+Contributions, issues, and feature requests are welcome!
 
 ## Changelog
 
@@ -344,8 +326,12 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 - Initial release with basic process information extraction
 - Support for CPU usage, memory layout, and ELF sections
 - User-space controller program
-- Dev container support
+- Function-level unit tests for core functionality
+- Dev container support for isolated development
 - CI/CD pipeline with GitHub Actions
+- QEMU testing environment for safe kernel module testing
+- Comprehensive documentation and quick reference guides
+- Dual BSD/GPL license
 
 ---
 
