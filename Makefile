@@ -18,7 +18,7 @@ SRC_DIR := src
 # Build directory for user program
 BUILD_DIR := build
 
-.PHONY: all clean module user install uninstall test help
+.PHONY: all clean module user install uninstall test help unit
 
 # Default target
 all: module user
@@ -37,6 +37,17 @@ user:
 	@mkdir -p $(BUILD_DIR)
 	gcc -Wall -o $(BUILD_DIR)/$(USER_PROG) $(SRC_DIR)/$(USER_PROG).c
 	@echo "User program built successfully!"
+
+# Function-level unit tests (user-space)
+unit:
+	@echo "Building function-level unit tests..."
+	@mkdir -p $(BUILD_DIR)
+	gcc -Wall -I$(SRC_DIR) -o $(BUILD_DIR)/elf_det_tests $(SRC_DIR)/elf_det_tests.c
+	gcc -Wall -I$(SRC_DIR) -o $(BUILD_DIR)/proc_elf_ctrl_tests $(SRC_DIR)/proc_elf_ctrl_tests.c
+	@echo "Running unit tests..."
+	@$(BUILD_DIR)/elf_det_tests
+	@$(BUILD_DIR)/proc_elf_ctrl_tests
+	@echo "All function-level unit tests passed!"
 
 # Install kernel module (requires root)
 install: module
