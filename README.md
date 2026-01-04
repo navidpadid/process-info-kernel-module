@@ -78,11 +78,11 @@ This project uses a **Dev Container** for development to ensure a consistent, fu
 - **Internet connection** for initial container build
 
 **Included in container:**
-- ✅ Ubuntu 24.04 with Kernel 6.8+ headers
-- ✅ All build tools (gcc, make, kernel headers)
-- ✅ Static analysis tools (clang-format, sparse, cppcheck) pre-installed
-- ✅ Git pre-commit hooks automatically configured
-- ✅ Zero manual configuration required
+-  Ubuntu 24.04 with Kernel 6.8+ headers
+-  All build tools (gcc, make, kernel headers)
+-  Static analysis tools (clang-format, sparse, cppcheck) pre-installed
+-  Git pre-commit hooks automatically configured
+-  Zero manual configuration required
 
 ## Building and Running
 
