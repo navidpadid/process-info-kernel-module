@@ -6,7 +6,7 @@
 typedef u64 eh_u64;
 #else
 #include <stdint.h>
-typedef u64 eh_u64;
+typedef uint64_t eh_u64;
 #endif
 
 /* Compute CPU usage permyriad (percent * 100) from total_ns and delta_ns */
