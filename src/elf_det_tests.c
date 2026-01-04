@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
 #include "elf_helpers.h"
 #include <assert.h>
 #include <stdio.h>
@@ -13,10 +14,14 @@ int main(void)
 
 	/* compute_bss_range tests */
 	unsigned long s = 0, e = 0;
-	assert(compute_bss_range(1000UL, 2000UL, &s, &e) == 1);
+	int ret1, ret2;
+
+	ret1 = compute_bss_range(1000UL, 2000UL, &s, &e);
+	assert(ret1 == 1);
 	assert(s == 1000UL && e == 2000UL);
 
-	assert(compute_bss_range(3000UL, 2000UL, &s, &e) == 0);
+	ret2 = compute_bss_range(3000UL, 2000UL, &s, &e);
+	assert(ret2 == 0);
 	assert(s == 0UL && e == 0UL);
 
 	puts("elf_helpers tests passed");

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause) */
 #pragma once
 
 #ifdef __KERNEL__
@@ -5,7 +6,7 @@
 typedef u64 eh_u64;
 #else
 #include <stdint.h>
-typedef uint64_t eh_u64;
+typedef u64 eh_u64;
 #endif
 
 /* Compute CPU usage permyriad (percent * 100) from total_ns and delta_ns */

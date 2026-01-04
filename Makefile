@@ -91,10 +91,13 @@ checkpatch:
 	@echo "Running checkpatch.pl (kernel coding style)..."
 	@if [ -f /lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl ]; then \
 		for file in $(SRC_DIR)/*.c $(SRC_DIR)/*.h; do \
-			if [ -f "$$file" ]; then \
-				echo "Checking $$file..."; \
-				/lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl --no-tree --strict --file $$file || true; \
-			fi \
+			case "$$file" in \
+				*.mod.c) ;; \
+				*) if [ -f "$$file" ]; then \
+					echo "Checking $$file..."; \
+					/lib/modules/$(shell uname -r)/build/scripts/checkpatch.pl --no-tree --strict --file $$file || true; \
+				fi ;; \
+			esac; \
 		done; \
 	else \
 		echo "checkpatch.pl not found. Install kernel sources."; \

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -11,10 +12,18 @@ int main(int argc, char **argv)
 	char buff[2048];
 
 	if (argc > 1) {
-		strncpy(pid_user, argv[1], sizeof(pid_user) - 1);
-		pid_user[sizeof(pid_user) - 1] = '\0';
+		char *pid_path;
+		char *det_path;
+		size_t len;
 
-		char *pid_path = build_proc_path("pid");
+		/* Safe string copy with explicit bounds checking */
+		len = strlen(argv[1]);
+		if (len >= sizeof(pid_user))
+			len = sizeof(pid_user) - 1;
+		memcpy(pid_user, argv[1], len);
+		pid_user[len] = '\0';
+
+		pid_path = build_proc_path("pid");
 		fp = fopen(pid_path, "w");
 		if (!fp) {
 			perror("open pid");
@@ -25,7 +34,7 @@ int main(int argc, char **argv)
 		fclose(fp);
 		free(pid_path);
 
-		char *det_path = build_proc_path("det");
+		det_path = build_proc_path("det");
 		fp = fopen(det_path, "r");
 		if (!fp) {
 			perror("open det");
@@ -42,21 +51,24 @@ int main(int argc, char **argv)
 	}
 
 	printf("***************************************************************"
-	       "************\n");
+	       "********\n");
 	printf("******Navid user program for gathering memory info on desired "
 	       "process******\n");
 	printf("***************************************************************"
-	       "************\n");
+	       "********\n");
 	printf("***************************************************************"
-	       "************\n");
+	       "********\n");
 	while (1) {
+		char *pid_path2;
+		char *det_path2;
+
 		printf("************enter the process id:");
 		if (scanf("%19s", pid_user) != 1) {
 			fprintf(stderr, "invalid input\n");
 			break;
 		}
 
-		char *pid_path2 = build_proc_path("pid");
+		pid_path2 = build_proc_path("pid");
 		fp = fopen(pid_path2, "w");
 		if (!fp) {
 			perror("open pid");
@@ -68,7 +80,7 @@ int main(int argc, char **argv)
 		free(pid_path2);
 
 		printf("the process info is here:\n");
-		char *det_path2 = build_proc_path("det");
+		det_path2 = build_proc_path("det");
 		fp = fopen(det_path2, "r");
 		if (!fp) {
 			perror("open det");
