@@ -58,3 +58,18 @@ static inline int compute_heap_range(unsigned long start_brk, unsigned long brk,
 	*out_end = brk;
 	return 1;
 }
+
+/* Check if an address falls within a memory range (inclusive)
+ * Used for finding VMAs that contain specific addresses like stack
+ * Returns 1 if addr is within [range_start, range_end), 0 otherwise
+ */
+static inline int is_address_in_range(unsigned long addr,
+				      unsigned long range_start,
+				      unsigned long range_end)
+{
+	if (range_start > range_end)
+		return 0;
+	if (addr >= range_start && addr < range_end)
+		return 1;
+	return 0;
+}

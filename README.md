@@ -586,9 +586,6 @@ ls -la /proc/elf_det/
 
 This project is licensed under **Dual BSD/GPL** license.
 
-## Author
-
-**Navid Malekghaini**
 
 ## Contributing
 

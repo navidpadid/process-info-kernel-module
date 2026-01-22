@@ -33,6 +33,32 @@ static ssize_t procfile_write(struct file *, const char __user *, size_t,
 
 // det proc file_operations starts
 
+/* Find the lower boundary of the stack VMA
+ * Iterates through VMAs to find the one containing start_stack
+ * Returns the vm_start (lower bound) of the stack VMA, or 0 if not found
+ */
+static unsigned long find_stack_vma_end(struct mm_struct *mm,
+					unsigned long start_stack)
+{
+	struct vm_area_struct *vma;
+	struct ma_state mas;
+	unsigned long stack_end = 0;
+
+	mas_init(&mas, &mm->mm_mt, 0);
+	mas_for_each(&mas, vma, ULONG_MAX)
+	{
+		/* Use helper to check if start_stack is within this VMA */
+		if (is_address_in_range(start_stack, vma->vm_start,
+					vma->vm_end)) {
+			/* Found the stack VMA */
+			stack_end = vma->vm_start; /* Stack grows down */
+			break;
+		}
+	}
+
+	return stack_end;
+}
+
 // this function is the base function to gather information from kernel
 static int elfdet_show(struct seq_file *m, void *v)
 {
@@ -87,16 +113,7 @@ static int elfdet_show(struct seq_file *m, void *v)
 
 	/* Stack: Find the [stack] VMA for actual stack boundaries */
 	stack_start = task->mm->start_stack;
-	mas_set(&mas, 0);
-	mas_for_each(&mas, vma, ULONG_MAX)
-	{
-		if (vma->vm_start <= task->mm->start_stack &&
-		    vma->vm_end >= task->mm->start_stack) {
-			/* Found the stack VMA */
-			stack_end = vma->vm_start; /* Stack grows down */
-			break;
-		}
-	}
+	stack_end = find_stack_vma_end(task->mm, stack_start);
 
 	/* BSS: uninitialized data between end_data and start_brk
 	 * May be zero-length in modern binaries

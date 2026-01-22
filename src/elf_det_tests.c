@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
 #include "elf_helpers.h"
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 
 int main(void)
@@ -37,6 +38,25 @@ int main(void)
 	ret1 = compute_heap_range(10000UL, 10000UL, &s, &e);
 	assert(ret1 == 1);
 	assert(s == 10000UL && e == 10000UL);
+
+	/* is_address_in_range tests */
+	/* Test address within range */
+	assert(is_address_in_range(5000UL, 1000UL, 10000UL) == 1);
+	assert(is_address_in_range(1000UL, 1000UL, 10000UL) == 1);
+
+	/* Test address at boundary (range_end is exclusive) */
+	assert(is_address_in_range(10000UL, 1000UL, 10000UL) == 0);
+
+	/* Test address outside range */
+	assert(is_address_in_range(500UL, 1000UL, 10000UL) == 0);
+	assert(is_address_in_range(15000UL, 1000UL, 10000UL) == 0);
+
+	/* Test invalid range (start > end) */
+	assert(is_address_in_range(5000UL, 10000UL, 1000UL) == 0);
+
+	/* Test edge cases */
+	assert(is_address_in_range(0UL, 0UL, 1UL) == 1);
+	assert(is_address_in_range(ULONG_MAX - 1, 0UL, ULONG_MAX) == 1);
 
 	puts("elf_helpers tests passed");
 	return 0;
