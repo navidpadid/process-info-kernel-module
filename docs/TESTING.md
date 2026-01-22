@@ -1,0 +1,122 @@
+# Testing Guide
+
+## Unit Tests (No Kernel Required)
+
+Run pure function tests without loading any kernel modules:
+
+```bash
+make unit
+```
+
+This builds and runs:
+- `src/elf_det_tests.c` – verifies `compute_usage_permyriad()`, `compute_bss_range()`, `compute_heap_range()`, and `is_address_in_range()`
+- `src/proc_elf_ctrl_tests.c` – verifies `build_proc_path()` with and without `ELF_DET_PROC_DIR`
+
+Artifacts are created under `build/`.
+
+## QEMU Testing (Recommended)
+
+For maximum safety, test the kernel module in an isolated QEMU virtual machine.
+
+### Quick Start
+
+```bash
+# One-time setup
+./scripts/qemu-setup.sh
+
+# Start VM
+./scripts/qemu-run.sh
+
+# In another terminal, run automated tests
+./scripts/qemu-test.sh
+```
+
+### What QEMU Testing Does
+
+- Downloads Ubuntu 24.04 VM image
+- Configures VM with kernel headers
+- Provides SSH access on port 2222
+- Completely isolates module testing from your host
+- Automated build, install, test, and uninstall cycle
+
+### Manual Testing in QEMU
+
+After starting the VM with `./scripts/qemu-run.sh`:
+
+```bash
+# SSH into the VM
+ssh -p 2222 ubuntu@localhost
+# Password: ubuntu
+
+# Inside VM - build and test
+cd kernel_module
+make clean && make all
+sudo make install
+./build/proc_elf_ctrl
+
+# Check kernel logs
+sudo dmesg | tail -20
+
+# Unload module
+sudo make uninstall
+```
+
+### VM Access
+
+- **SSH**: `ssh -p 2222 ubuntu@localhost`
+- **Password**: `ubuntu` (change after first login)
+- **Exit QEMU console**: Ctrl+A then X
+- **Copy files TO VM**: `scp -P 2222 file.txt ubuntu@localhost:~/`
+- **Copy files FROM VM**: `scp -P 2222 ubuntu@localhost:~/file.txt ./`
+
+### Cleanup
+
+```bash
+# Remove QEMU environment and start fresh
+rm -rf scripts/qemu-env/
+./scripts/qemu-setup.sh
+```
+
+## Kernel Compatibility
+
+The module has been tested on:
+- Ubuntu 20.04 LTS (Kernel 5.15+)
+- Ubuntu 22.04 LTS (Kernel 5.19+)
+- Ubuntu 24.04 LTS (Kernel 6.8+)
+
+**Requirements:**
+- Kernel 5.6+ required (proc_ops API)
+- Kernel 6.8+ recommended (VMA iterator API with maple tree)
+
+## Troubleshooting
+
+### Module won't load
+
+```bash
+# Check kernel logs
+dmesg | tail -n 20
+
+# Verify kernel headers are installed
+ls /lib/modules/$(uname -r)/build
+```
+
+### Build errors
+
+```bash
+# Install missing dependencies
+sudo apt-get install -y build-essential linux-headers-$(uname -r)
+
+# Clean and rebuild
+make clean
+make all
+```
+
+### Permission denied when running user program
+
+```bash
+# Ensure module is loaded
+lsmod | grep elf_det
+
+# Check proc entries exist
+ls -la /proc/elf_det/
+```

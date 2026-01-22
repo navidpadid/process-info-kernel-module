@@ -107,9 +107,35 @@ PROJECT STRUCTURE
   src/proc_elf_ctrl.c         - User program source
   src/elf_det_tests.c         - Unit tests for elf_det
   src/proc_elf_ctrl_tests.c   - Unit tests for proc_elf_ctrl
-  src/elf_helpers.h           - Helper functions (CPU, BSS)
+  src/elf_helpers.h           - Helper functions (CPU, BSS, heap)
   src/user_helpers.h          - Helper functions (path building)
   build/                      - Compiled artifacts
+
+
+MEMORY INFORMATION EXTRACTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PID          - Process ID
+  NAME         - Process name
+  CPU(%)       - CPU usage percentage
+  START_CODE   - Start of executable code section (includes rodata)
+  END_CODE     - End of executable code section
+  START_DATA   - Start of initialized data section
+  END_DATA     - End of initialized data section
+  BSS_START    - Start of uninitialized data (may equal BSS_END)
+  BSS_END      - End of uninitialized data
+  HEAP_START   - Start of brk-based heap (see limitations below)
+  HEAP_END     - Current end of brk-based heap
+  STACK_START  - Top of stack (highest address, grows downward)
+  STACK_END    - Current bottom of stack (lower boundary)
+  ELF_BASE     - Base address of ELF binary (first VMA, for PIE)
+
+IMPORTANT LIMITATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • BSS may be zero-length (BSS_START == BSS_END) in modern binaries
+  • rodata segment merged with code section (not shown separately)
+  • Heap shows only brk-based allocations (not mmap-based arenas)
+  • Modern malloc uses mmap for large allocations (not tracked here)
+  • Stack shows only start address (grows downward from there)
 
 
 TIPS
