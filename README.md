@@ -12,9 +12,8 @@ This project implements a Linux Kernel Module that provides access to process in
 
 - **Process ID (PID)** and **Process Name**
 - **CPU Usage** statistics
-- **Memory Layout**: Code, Data, BSS, Heap, and Stack sections
-- **ELF Binary** information
 - **Start/End addresses** for code, data, BSS, heap, and stack segments
+- **ELF Binary** information
 
 The project consists of two main components:
 1. **Kernel Module** (`elf_det.c`) - Runs in kernel space and gathers process information
